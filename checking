@@ -1,0 +1,49 @@
+pipeline {
+    agent any
+    
+    environment {
+        S3_BUCKET = 'my-angular-app-bucket-7'  // Replace with your actual S3 bucket name
+        AWS_DEFAULT_REGION = 'us-east-1'       // Replace with your AWS region
+    }
+    
+    triggers {
+        githubPush()  // Trigger on push to GitHub
+    }
+    
+    stages {
+        stage('Checkout Code') {
+            steps {
+                git branch: 'master',
+                    credentialsId: 'github-credentials-id',
+                    url: 'https://github.com/RajaStriker/striker-angular.git'
+            }
+        }
+}
+
+    
+        stage('Sync to S3') {
+            steps {
+                script {
+                    withCredentials([
+                        string(credentialsId: 'c8f19f80-4420-44f1-bf6c-0bb6038ac477', variable: 'AWS_ACCESS_KEY_ID'),
+                        string(credentialsId: '50366b85-078e-4b4e-a9b1-8b31a116e884', variable: 'AWS_SECRET_ACCESS_KEY'),
+                        string(credentialsId: '52876e70-6684-47f4-b834-9657d1dfce58', variable: 'AWS_SESSION_TOKEN')
+                    ]) {
+                        sh '''
+                        aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+                        aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+                        aws configure set aws_session_token $AWS_SESSION_TOKEN
+                        aws configure set default.region $AWS_DEFAULT_REGION
+                        aws s3 sync . s3://${S3_BUCKET}/ --exclude ".git/*" --exclude "node_modules/*"
+                        '''
+                    }
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            cleanWs()
+        }
+    }
