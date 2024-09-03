@@ -1,5 +1,5 @@
 HEAD
-# MyAngularApp one
+# MyAngularApp
 
 # MyAngularApp  
 7c22c444b9af1e28a8d97ce328b257ffdb8fca63
